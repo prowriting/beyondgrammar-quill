@@ -1,17 +1,12 @@
-var fs = require('fs');
-var gracefulFs = require('graceful-fs');
-gracefulFs.gracefulify(fs);
-
-var webpack = require('webpack'),
-    CopyWebpackPlugin = require('copy-webpack-plugin'),
-    path = require('path');
+var path = require('path');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const ROOT = path.resolve('.');
 
 module.exports = {
+    mode: 'development',
     watch : true,
     stats: { colors: true, reasons: true },
-    debug: true,
 
     output: {
         path : path.resolve('dist'),
@@ -23,15 +18,8 @@ module.exports = {
         'beyond-grammar-plugin' : "./src/beyond_grammar_quill.ts"
     },
 
-    plugins: [
-        new CopyWebpackPlugin([
-            { from: './src/quill.html', to: './' },
-            { context : './src', from: {glob : './icons/**/*'}, to:'./' },
-        ])
-    ],
-
     resolve: {
-        extensions: [ '', '.ts', '.es6', '.js', '.json' ],
+        extensions: ['.ts', '.es6', '.js', '.json'],
         modules: [
             path.join(ROOT, "modules"),
             path.join(ROOT, 'node_modules'),
@@ -39,15 +27,22 @@ module.exports = {
         ]
     },
     module: {
-        loaders: [
-            {test: /\.ts$/, loader: 'ts-loader?project=./tsconfig.json'},
-            {test : /\.png$/, loader : "url-loader"}
+        rules: [
+            {
+                test: /\.ts$/,
+                use: 'ts-loader',
+                exclude: /node_modules/
+            },
+            {
+                test: /\.png$/,
+                use: 'url-loader'
+            }
         ]
     },
 
     devServer: {
         contentBase: './',
-        quite: false,
+        quiet: false,
         proxy: {
             "/api/v1": {
                 target: "http://rtgrammarapi.azurewebsites.net/",
@@ -58,6 +53,13 @@ module.exports = {
                 changeOrigin: true
             }
         }
-    }
+    },
+
+    plugins: [
+        new CopyWebpackPlugin([
+            { from: './src/quill.html', to: './' },
+            { context : './src', from: {glob : './icons/**/*'}, to:'./' },
+        ])
+    ],
 };
 
