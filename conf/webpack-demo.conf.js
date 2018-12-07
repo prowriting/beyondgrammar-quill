@@ -41,7 +41,8 @@ module.exports = {
     },
 
     devServer: {
-        contentBase: './',
+        contentBase: './dist',
+        index: 'quill.html',
         quiet: false,
         proxy: {
             "/api/v1": {
