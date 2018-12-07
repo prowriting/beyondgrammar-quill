@@ -1,5 +1,5 @@
 export interface IGrammarCheckerSettings {
-  languageIsoCode?: string;
+  languageIsoCode?: string | null;
   checkGrammar?: boolean;
   checkSpelling?: boolean;
   checkStyle?: boolean;

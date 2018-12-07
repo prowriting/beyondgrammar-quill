@@ -3,12 +3,14 @@ import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGramm
 
 const settings = {
   service: {
-    sourcePath:   '//cdn.prowritingaid.com/beyondgrammar/release/dist/hayt/bundle.js',
+    apiKey:       "E8FEF7AE-3F36-4EAF-A451-456D05E6F2A3",
+    // sourcePath:   '//cdn.prowritingaid.com/beyondgrammar/release/dist/hayt/bundle.js',
+    sourcePath:   'http://localhost:8080/bundle.js?r=' + Math.random(),
     serviceUrl:   '//rtg.prowritingaid.com'
   },
   grammar: {
     languageFilter:   null,
-    languageIsoCode:  undefined,
+    languageIsoCode:  null,
     checkStyle:       true,
     checkSpelling:    true,
     checkGrammar:     true,
@@ -75,9 +77,11 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
 export function initBeyondGrammarForQuillInstance ($quillEl: HTMLElement): Promise<void> {
   return ensureLoadGrammarChecker()
   .then(GrammarChecker => {
-    console.log('GrammarChecker', GrammarChecker)
     const checker: IGrammarChecker = new GrammarChecker($quillEl, settings.service)
+
     checker.setSettings(settings.grammar);
+    checker.init()
+    .then(() => checker.activate())
   })
 }
 
