@@ -2,65 +2,71 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ProWritingAid - BeyondGrammar Checking for Quill</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ProWritingAid - BeyondGrammar Checking for Quill</title>
 
-    <!-- Include external CSS. -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <!-- Include external CSS. -->
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Create a tag that we will use as the editable area. -->
-    <div id="container" style="width: 100%; max-width: 1000px; margin-left: auto; margin-right: auto;">
-        <!-- You can use a div tag as well. -->
-        <div spellcheck="false" style="width: 100%; margin:0 auto;" id="contenteditable">
-            <p>
-                Novalk Djokovic is set to miss the US Open after one of his doctors made an announcement that he will need six to twelve
-                weeks to recovers from a elbow injury.
-            </p>
+  <!-- Create a tag that we will use as the editable area. -->
+  <div id="container" style="width: 100%; max-width: 1000px; margin-left: auto; margin-right: auto;">
+    <!-- You can use a div tag as well. -->
+    <div spellcheck="false" style="width: 100%; margin:0 auto;" id="contenteditable">
+      <p>
+        Novalk Djokovic is set to miss the US Open after one of his doctors made an announcement that he will need six
+        to twelve
+        weeks to recovers from a elbow injury.
+      </p>
 
-            <p>
-                But Andy Murrey's chances of playing at Flushing Meadows would appear more positive, with the Scot continuing his rehabilitation
-                from a hip problem.
-            </p>
+      <p>
+        But Andy Murrey's chances of playing at Flushing Meadows would appear more positive, with the Scot continuing
+        his rehabilitation
+        from a hip problem.
+      </p>
 
-            <p>
-                The last grandslam of the year starts in just under five weeks on August 28, meaning Djokovic will run out of time if the
-                latest assessment is correct.
-            </p>
+      <p>
+        The last grandslam of the year starts in just under five weeks on August 28, meaning Djokovic will run out of
+        time if the
+        latest assessment is correct.
+      </p>
 
-            <p>
-                <b>Injured Djokovic starting to consider a break away from tennis</b><br />The 12-time major champion was
-                forced to retire injured during his Wimbeldon quarter-final against Tomas Berdych earlier this month and
-                said after the match that he had been feeling pain in his right elbow for over a year and a half. According
-                to his physio its not doing very well. If he does return he will be more likely to injure it again.
-            </p>
+      <p>
+        <b>Injured Djokovic starting to consider a break away from tennis</b><br />The 12-time major champion was
+        forced to retire injured during his Wimbeldon quarter-final against Tomas Berdych earlier this month and
+        said after the match that he had been feeling pain in his right elbow for over a year and a half. According
+        to his physio its not doing very well. If he does return he will be more likely to injure it again.
+      </p>
 
-            <p>
-                He has since been seeking advice from specialists, including Serbian doctor Zdenko Milinkovic, who said Djokovic is suffering
-                from a "bruised bone due to excessive playing".
-            </p>
+      <p>
+        He has since been seeking advice from specialists, including Serbian doctor Zdenko Milinkovic, who said
+        Djokovic is suffering
+        from a "bruised bone due to excessive playing".
+      </p>
 
-            <p>"Nole must rest for six to 12 weeks," Milinkovic told Sportski Zurnal, a sports newspaper in Serbia.</p>
+      <p>"Nole must rest for six to 12 weeks," Milinkovic told Sportski Zurnal, a sports newspaper in Serbia.</p>
 
-            <p>
-                The next examination will know wether this asdsessment stays or changes. During this period, he is not going to train with
-                a racket but he will run other sessions, such as fitness and the like.
-            </p>
-        </div>
+      <p>
+        The next examination will know wether this asdsessment stays or changes. During this period, he is not going to
+        train with
+        a racket but he will run other sessions, such as fitness and the like.
+      </p>
     </div>
+  </div>
 
-    <!-- Include Editor style. -->
-    <script src="beyond-grammar-plugin.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <!-- Include Editor style. -->
+  <script src="beyond-grammar-plugin.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
-    <!-- Initialize the editor. -->
-    <script>
-        var quill = new Quill('#contenteditable', {
-            theme: 'snow'
-        });
-    </script>
+  <!-- Initialize the editor. -->
+  <script>
+    var quill = new Quill('#contenteditable', {
+      theme: 'snow'
+    });
+
+  </script>
 </body>
 
 </html>
