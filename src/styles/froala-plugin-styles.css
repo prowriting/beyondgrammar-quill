@@ -1,0 +1,33 @@
+.beyond-grammar-toolbar-icon{
+  width: 16px !important;
+  height: 16px !important;
+  background-size: 16px 16px !important;
+  background: url(../icons/realtime-logo-black-16.png) no-repeat 0 0 !important;
+  position: relative;
+}
+
+.beyond-grammar-toolbar-icon.loading, .beyond-grammar-toolbar-icon.disconnected {
+  animation: beyond-grammar-toolbar-icon-loading-animation 1s ease infinite;
+}
+
+.beyond-grammar-toolbar-icon.connected{
+  background: url(../icons/realtime-logo-black-16.png) no-repeat 0 0 !important;
+}
+
+.beyond-grammar-toolbar-icon.off{
+    opacity: 0.5;
+}
+
+
+
+@keyframes beyond-grammar-toolbar-icon-loading-animation {
+  0%, 100%{
+    opacity: 0.8;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

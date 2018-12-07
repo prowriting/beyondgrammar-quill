@@ -1,0 +1,21 @@
+{
+  "name": "beyond-grammar-quill",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "webpack-dev-server --port 8082 --config ./conf/webpack-demo.conf.js --content-base build/",
+    "start:local:": "webpack-dev-server --port 8082 --config ./conf/webpack-demo.conf.js --content-base build/",
+    "build": "webpack --config ./conf/webpack-demo.conf.js ",
+    "build:ci": "webpack --config ./conf/webpack-demo.CI.conf.js "
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.6.0",
+    "ts-loader": "^5.3.1",
+    "typescript": "^3.2.1",
+    "webpack": "^4.27.0",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
+  },
+  "dependencies": {
+    "@types/quill": "^2.0.1"
+  }
+}
