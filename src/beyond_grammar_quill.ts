@@ -1,5 +1,6 @@
-import Quill from 'quill'
+import Quill, { RangeStatic } from 'quill'
 import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
+import { IServiceSettings } from './interfaces/IServiceSettings';
 
 const settings = {
   service: {
@@ -74,10 +75,79 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
   })
 }
 
-export function initBeyondGrammarForQuillInstance ($quillEl: HTMLElement): Promise<void> {
+function textContentLength ($el: Node) {
+  return ($el.textContent || '').length
+}
+
+function isBlockElement ($el: Node) {
+  const blockRegex = /^(address|blockquote|body|center|dir|div|dl|fieldset|form|h[1-6]|hr|isindex|menu|noframes|noscript|ol|p|pre|table|ul|dd|dt|frameset|li|tbody|td|tfoot|th|thead|tr|html)$/i
+  return blockRegex.test($el.nodeName)
+}
+
+function textRangeInParent ($el: Element): { start: number, end: number } {
+  const $parent = $el.parentElement
+  if (!$parent) return { start: -1, end: -1 }
+
+  const start = (() => {
+    const nodes = Array.from($parent.childNodes)
+    let start   = 0
+
+    for (let i = 0, len = nodes.length; i < len; i++) {
+      if (nodes[i] === $el) return start
+      start += textContentLength(nodes[i]) + (isBlockElement(nodes[i]) ? 1 : 0)
+    }
+
+    return -1
+  })()
+
+  return {
+    start,
+    end:  start + textContentLength($el)
+  }
+}
+
+function textRangeInAncestor ($el: Element, $ancestor: Element): { start: number, end: number } {
+  const range = { start: 0, end: 0 }
+  let $node   = $el
+
+  while ($node && $node !== $ancestor) {
+    const r = textRangeInParent($node)
+
+    if (r.start === -1) return { start: -1, end: -1 }
+    if ($node === $el) {
+      range.start = r.start
+      range.end   = r.end
+    } else {
+      range.start += r.start
+      range.end   += r.start
+    }
+
+    $node = $node.parentElement as Element
+  }
+
+  return range
+}
+
+export function initBeyondGrammarForQuillInstance ($editor: HTMLElement, quillInstance: Quill): Promise<void> {
   return ensureLoadGrammarChecker()
   .then(GrammarChecker => {
-    const checker: IGrammarChecker = new GrammarChecker($quillEl, settings.service)
+    const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
+      ...settings.service,
+      wrapperOptions: {
+        apiDecorators: {
+          setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>) => {
+            const { start, end } = textRangeInAncestor($el, $editor)
+
+            // Note: Quill tries to normalize html whenever there is any html change,
+            // This makes the PWA internal setCursor not working any more
+            // So have to use the Quill:setSelection API, and add some delay here
+            setTimeout(() => {
+              quillInstance.setSelection(end, 0)
+            }, 100)
+          }
+        }
+      }
+    })
 
     checker.setSettings(settings.grammar);
     checker.init()
@@ -85,6 +155,35 @@ export function initBeyondGrammarForQuillInstance ($quillEl: HTMLElement): Promi
   })
 }
 
+export function initBlots (): void {
+  const quill   = (window as any)['Quill'] as any
+  const Inline  = quill.import('blots/inline')
+
+  const initPWABlots = () => {
+    class PWAInline extends Inline {}
+
+    PWAInline.tagName   = 'pwa'
+    PWAInline.blotName  = 'pwa-inline'
+    PWAInline.className = 'pwa-mark'
+
+    quill.register(PWAInline)
+  }
+
+  const initRangyBlots = () => {
+    class RangySelectionBoundaryInline extends Inline {}
+
+    RangySelectionBoundaryInline.tagName   = 'span'
+    RangySelectionBoundaryInline.blotName  = 'rangy-selection-boundary-inline'
+    RangySelectionBoundaryInline.className = 'rangySelectionBoundary'
+
+    quill.register(RangySelectionBoundaryInline)
+  }
+
+  initPWABlots()
+  initRangyBlots()
+}
+
 exportToNamespace(window, 'BeyondGrammar', {
+  initBlots,
   initBeyondGrammarForQuillInstance
 })
