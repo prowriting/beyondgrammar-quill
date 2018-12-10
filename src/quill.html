@@ -8,6 +8,29 @@
 
   <!-- Include external CSS. -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <style>
+
+  .result-ops {
+    display: flex;
+    margin-top: 30px;
+  }
+
+  .result-col {
+    flex: 1;
+    margin-right: 20px;
+  }
+
+  .result-col button {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .result-col textarea {
+    display: block;
+    width: 100%;
+    height: 300px;
+  }
+  </style>
 </head>
 
 <body>
@@ -54,6 +77,30 @@
         a racket but he will run other sessions, such as fitness and the like.
       </p>
     </div>
+
+    <div class="result-ops" style="display: flex;">
+      <div class="result-col">
+        <button
+          id="get_contents"
+          class="get-contents"
+        >
+          Get HTML
+        </button>
+
+        <textarea id="input_contents"></textarea>
+      </div>
+
+      <div class="result-col">
+        <button
+          id="get_text"
+          class="get-text"
+        >
+          Get Text
+        </button>
+
+        <textarea id="input_text"></textarea>
+      </div>
+    </div>
   </div>
 
   <!-- Include Editor style. -->
@@ -72,6 +119,23 @@
       document.getElementById('contenteditable'),
       quill
     );
+
+    const $btnGetContents = document.getElementById('get_contents')
+    const $btnGetText     = document.getElementById('get_text')
+    const $inputContents  = document.getElementById('input_contents')
+    const $inputText      = document.getElementById('input_text')
+
+    $btnGetContents.addEventListener('click', () => {
+      const html = window.BeyondGrammar.getCleanInnerHTML(
+        document.getElementById('contenteditable').querySelector('.ql-editor')
+      )
+      $inputContents.value = html
+    });
+
+    $btnGetText.addEventListener('click', () => {
+      const text = quill.getText()
+      $inputText.value = text
+    });
   </script>
 </body>
 

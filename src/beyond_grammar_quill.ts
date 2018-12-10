@@ -1,6 +1,7 @@
 import Quill, { RangeStatic } from 'quill'
 import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
-import { IServiceSettings } from './interfaces/IServiceSettings';
+import { IServiceSettings } from './interfaces/IServiceSettings'
+import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace, traverseInDOM } from './common/utils'
 
 const settings = {
   service: {
@@ -27,41 +28,6 @@ export interface ModuleType {
   new(quill: Quill, options: QuillBeyondGrammarOptions): any
 }
 
-export function exportToNamespace (root: Object, ns: string, api: Record<string, any>): void {
-  const namespace = ns.split('.').reduce((prev: any, key: string) => {
-    prev[key] = prev[key] || {}
-    return prev[key]
-  }, root as any)
-
-
-  Object.assign(namespace, api)
-}
-
-export function loadScript (src: string): Promise<HTMLScriptElement> {
-  return new Promise((resolve, reject) => {
-    const $script   = document.createElement("script")
-
-    $script.onload  = () => resolve($script)
-    $script.onerror = () => reject(new Error(`Failed to load`))
-    $script.src     = src
-
-    document.body.appendChild($script)
-  })
-}
-
-export const loadScriptIfNeeded = (() => {
-  const cache: Record<string, Promise<HTMLScriptElement>> = {}
-
-  return (src: string): Promise<HTMLScriptElement>  => {
-    if (cache[src]) return cache[src]
-
-    const p = loadScript(src)
-    cache[src] = p
-
-    return p
-  }
-})()
-
 export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor> {
   return loadScriptIfNeeded(settings.service.sourcePath)
   .then(() => {
@@ -75,62 +41,13 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
   })
 }
 
-function textContentLength ($el: Node) {
-  return ($el.textContent || '').length
-}
-
-function isBlockElement ($el: Node) {
-  const blockRegex = /^(address|blockquote|body|center|dir|div|dl|fieldset|form|h[1-6]|hr|isindex|menu|noframes|noscript|ol|p|pre|table|ul|dd|dt|frameset|li|tbody|td|tfoot|th|thead|tr|html)$/i
-  return blockRegex.test($el.nodeName)
-}
-
-function textRangeInParent ($el: Element): { start: number, end: number } {
-  const $parent = $el.parentElement
-  if (!$parent) return { start: -1, end: -1 }
-
-  const start = (() => {
-    const nodes = Array.from($parent.childNodes)
-    let start   = 0
-
-    for (let i = 0, len = nodes.length; i < len; i++) {
-      if (nodes[i] === $el) return start
-      start += textContentLength(nodes[i]) + (isBlockElement(nodes[i]) ? 1 : 0)
-    }
-
-    return -1
-  })()
-
-  return {
-    start,
-    end:  start + textContentLength($el)
-  }
-}
-
-function textRangeInAncestor ($el: Element, $ancestor: Element): { start: number, end: number } {
-  const range = { start: 0, end: 0 }
-  let $node   = $el
-
-  while ($node && $node !== $ancestor) {
-    const r = textRangeInParent($node)
-
-    if (r.start === -1) return { start: -1, end: -1 }
-    if ($node === $el) {
-      range.start = r.start
-      range.end   = r.end
-    } else {
-      range.start += r.start
-      range.end   += r.start
-    }
-
-    $node = $node.parentElement as Element
-  }
-
-  return range
-}
-
 export function initBeyondGrammarForQuillInstance ($editor: HTMLElement, quillInstance: Quill): Promise<void> {
   return ensureLoadGrammarChecker()
   .then(GrammarChecker => {
+    // Note: hayt bundle is likely to overwrite `widnow.BeyondGrammar`,
+    // so re-export API after hayt script is loaded
+    makeExports()
+
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
       wrapperOptions: {
@@ -183,7 +100,25 @@ export function initBlots (): void {
   initRangyBlots()
 }
 
-exportToNamespace(window, 'BeyondGrammar', {
-  initBlots,
-  initBeyondGrammarForQuillInstance
-})
+export function getCleanInnerHTML ($editor: HTMLElement): string {
+  const $cloned   = $editor.cloneNode(true) as HTMLElement
+  const $pwaList  = $cloned.querySelectorAll('pwa')
+
+  Array.from($pwaList).forEach($pwa => {
+    $pwa.replaceWith(
+      document.createTextNode($pwa.textContent as string)
+    )
+  })
+
+  return $cloned.innerHTML
+}
+
+export function makeExports () {
+  exportToNamespace(window, 'BeyondGrammar', {
+    initBlots,
+    initBeyondGrammarForQuillInstance,
+    getCleanInnerHTML
+  })
+}
+
+makeExports()
