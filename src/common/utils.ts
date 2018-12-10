@@ -1,27 +1,3 @@
-export type TraverseInDomOptions = {
-  ignoreError?: boolean;
-};
-
-export function traverseInDOM ($root: Element, fn: ($dom: Element) => void, options: TraverseInDomOptions = {}) {
-  let cache: Element[] = [$root];
-
-  do {
-      const $el = cache.pop() as Element;
-
-      if (options.ignoreError) {
-          try {
-              fn($el)
-          } catch (e) {
-              console.warn(e)
-          };
-      } else {
-          fn($el)
-      }
-
-      // Note: deep first search, so children first
-      cache = Array.from($el.children || []).concat(cache)
-  } while (cache.length > 0)
-}
 
 export function exportToNamespace (root: Object, ns: string, api: Record<string, any>): void {
   const namespace = ns.split('.').reduce((prev: any, key: string) => {

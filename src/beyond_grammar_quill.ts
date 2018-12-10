@@ -1,7 +1,7 @@
 import Quill, { RangeStatic } from 'quill'
 import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
 import { IServiceSettings } from './interfaces/IServiceSettings'
-import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace, traverseInDOM } from './common/utils'
+import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace } from './common/utils'
 
 const settings = {
   service: {
@@ -20,12 +20,72 @@ const settings = {
   }
 }
 
-export type QuillBeyondGrammarOptions = {
+const cache = [] as Array<{quill: Quill, mod: BeyondGrammarModule, id: string}>
 
+function saveQuillAndMod (quill: Quill, mod: BeyondGrammarModule) {
+  const id = '' + Math.random()
+  cache.push({ id, quill, mod })
 }
 
-export interface ModuleType {
-  new(quill: Quill, options: QuillBeyondGrammarOptions): any
+function findModByQuill (quill: Quill) {
+  const item = cache.find(item => item.quill === quill)
+  return item ? item.mod : null
+}
+
+export type QuillBeyondGrammarOptions = {
+  foo?: boolean;
+}
+
+export class BeyondGrammarModule {
+  private checker: IGrammarChecker | null = null
+
+  constructor (private quill: Quill, options: QuillBeyondGrammarOptions) {
+    this.quill.getModule('toolbar').addHandler('beyondgrammar', this.toolbarHandler)
+
+    saveQuillAndMod(quill, this)
+
+    initBeyondGrammarForQuillInstance(quill)
+    .then(checker => {
+      this.checker = checker
+      this.toggleButtonActive(true)
+    })
+  }
+
+  toolbarHandler = (...args: any[]) => {
+    if (!this.checker) {
+      return this.toggleButtonActive(false)
+    } else {
+      this.toggleButtonActive(!this.checker.isActivated())
+    }
+
+    if (this.checker.isActivated()) {
+      this.checker.deactivate()
+    } else {
+      this.checker.activate()
+    }
+  }
+
+  toggleButtonActive = (isActive: boolean) => {
+    const [format, $btn]: [string, HTMLElement] = this.quill.getModule('toolbar').controls.find((item: any) => {
+      return item[0] === 'beyondgrammar'
+    })
+
+    $btn.classList.toggle('bg-active', isActive)
+  }
+}
+
+export function getToolbarHandler (quill: Quill) {
+  return (...args: any[]) => {
+    const mod: BeyondGrammarModule | null = findModByQuill(quill)
+    if (!mod) throw new Error('BeyondGrammarModule not found for this Quill instance')
+    return mod.toolbarHandler(...args)
+  }
+}
+
+export function getQuill () {
+  const quill: Quill = (window as any)['Quill'] as any
+  if (!quill) throw new Error('window.quill is empty')
+  return quill as any
 }
 
 export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor> {
@@ -41,7 +101,9 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
   })
 }
 
-export function initBeyondGrammarForQuillInstance ($editor: HTMLElement, quillInstance: Quill): Promise<void> {
+export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promise<IGrammarChecker> {
+  const $editor = quillInstance.root
+
   return ensureLoadGrammarChecker()
   .then(GrammarChecker => {
     // Note: hayt bundle is likely to overwrite `widnow.BeyondGrammar`,
@@ -67,13 +129,15 @@ export function initBeyondGrammarForQuillInstance ($editor: HTMLElement, quillIn
     })
 
     checker.setSettings(settings.grammar);
-    checker.init()
+
+    return checker.init()
     .then(() => checker.activate())
+    .then(() => checker)
   })
 }
 
-export function initBlots (): void {
-  const quill   = (window as any)['Quill'] as any
+export function registerBlots (): void {
+  const quill   = getQuill()
   const Inline  = quill.import('blots/inline')
 
   const initPWABlots = () => {
@@ -100,6 +164,15 @@ export function initBlots (): void {
   initRangyBlots()
 }
 
+export function registerModule () {
+  getQuill().register('modules/beyondgrammar', BeyondGrammarModule)
+}
+
+export function initBeyondGrammar () {
+  registerBlots()
+  registerModule()
+}
+
 export function getCleanInnerHTML ($editor: HTMLElement): string {
   const $cloned   = $editor.cloneNode(true) as HTMLElement
   const $pwaList  = $cloned.querySelectorAll('pwa')
@@ -115,8 +188,8 @@ export function getCleanInnerHTML ($editor: HTMLElement): string {
 
 export function makeExports () {
   exportToNamespace(window, 'BeyondGrammar', {
-    initBlots,
-    initBeyondGrammarForQuillInstance,
+    initBeyondGrammar,
+    getToolbarHandler,
     getCleanInnerHTML
   })
 }
