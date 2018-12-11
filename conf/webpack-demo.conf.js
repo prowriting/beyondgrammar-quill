@@ -5,7 +5,6 @@ const ROOT = path.resolve('.');
 
 module.exports = {
   mode: 'development',
-  watch: true,
   stats: {
     colors: true,
     reasons: true
