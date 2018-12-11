@@ -1,4 +1,4 @@
-import Quill, { RangeStatic } from 'quill'
+import Quill from 'quill'
 import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
 import { IServiceSettings } from './interfaces/IServiceSettings'
 import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace } from './common/utils'
@@ -32,9 +32,7 @@ function findModByQuill (quill: Quill) {
   return item ? item.mod : null
 }
 
-export type QuillBeyondGrammarOptions = {
-  foo?: boolean;
-}
+export type QuillBeyondGrammarOptions = {}
 
 export class BeyondGrammarModule {
   private checker: IGrammarChecker | null = null
