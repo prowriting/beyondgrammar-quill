@@ -30,15 +30,6 @@
     width: 100%;
     height: 300px;
   }
-
-  .ql-beyondgrammar:before {
-    content: "BG";
-  }
-
-  .ql-beyondgrammar.bg-active {
-    color: blue;
-    font-weight: bold;
-  }
   </style>
 </head>
 
@@ -129,7 +120,7 @@
             ['bold', 'italic', 'underline', 'link'],
             [{ list: 'ordered' }, { list: 'bullet' }],
             ['clean'],
-            ['beyondgrammar'],
+            [{ beyondgrammar: ['en-US', 'en-GB', false] }]
           ],
           handlers: {
             beyondgrammar: window.BeyondGrammar.getToolbarHandler(quill)

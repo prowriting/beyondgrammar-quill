@@ -1,0 +1,32 @@
+
+.ql-beyondgrammar.ql-picker {
+  .ql-picker-label {
+    padding-right: 20px;
+
+    &::before {
+      content: "No checking";
+    }
+
+    &[data-bg-value="en-US"]::before {
+      content: "English (United States)";
+    }
+
+    &[data-bg-value="en-GB"]::before {
+      content: "English (United Kindom)";
+    }
+  }
+
+  .ql-picker-item {
+    &::before {
+      content: "No checking";
+    }
+
+    &[data-value="en-US"]::before {
+      content: "English (United States)";
+    }
+
+    &[data-value="en-GB"]::before {
+      content: "English (United Kindom)";
+    }
+  }
+}

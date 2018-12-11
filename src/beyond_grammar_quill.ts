@@ -2,6 +2,7 @@ import Quill, { RangeStatic } from 'quill'
 import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
 import { IServiceSettings } from './interfaces/IServiceSettings'
 import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace } from './common/utils'
+import './styles/index.scss'
 
 const settings = {
   service: {
@@ -47,38 +48,50 @@ export class BeyondGrammarModule {
     initBeyondGrammarForQuillInstance(quill)
     .then(checker => {
       this.checker = checker
-      this.toggleButtonActive(true)
+      this.updateSelect('en-US')
     })
   }
 
-  toolbarHandler = (...args: any[]) => {
-    if (!this.checker) {
-      return this.toggleButtonActive(false)
-    } else {
-      this.toggleButtonActive(!this.checker.isActivated())
+  toolbarHandler = (value: string | boolean) => {
+    if (!this.checker)  return
+
+    switch (value) {
+      case false:
+        this.checker.deactivate()
+        break
+
+      default:
+        this.checker.setSettings({
+          ...this.checker.getSettings,
+          languageIsoCode: value as string
+        })
+        this.checker.activate()
+        break
     }
 
-    if (this.checker.isActivated()) {
-      this.checker.deactivate()
-    } else {
-      this.checker.activate()
-    }
+    this.updateSelect(value)
   }
 
-  toggleButtonActive = (isActive: boolean) => {
-    const [format, $btn]: [string, HTMLElement] = this.quill.getModule('toolbar').controls.find((item: any) => {
+  updateSelect = (value: string | boolean) => {
+    // Note: Quill renders `[{ beyondgrammar: ['en-US', 'en-GB', false] }]` (in `config.modules`)
+    // into a hidden <select> and a visible `.ql-picker` <span> as its next sibling
+    // The wording (content) of those <span> are defined in index.scss
+    // What we need to tell css is the `data-bg-value` as the current selected value
+    const [_, $select]: [string, HTMLElement] = this.quill.getModule('toolbar').controls.find((item: any) => {
       return item[0] === 'beyondgrammar'
     })
+    const $picker = $select.previousElementSibling as Element
+    const $label  = $picker.querySelector('.ql-picker-label') as Element
 
-    $btn.classList.toggle('bg-active', isActive)
+    $label.setAttribute('data-bg-value', '' + value)
   }
 }
 
 export function getToolbarHandler (quill: Quill) {
-  return (...args: any[]) => {
+  return (value: string | boolean) => {
     const mod: BeyondGrammarModule | null = findModByQuill(quill)
     if (!mod) throw new Error('BeyondGrammarModule not found for this Quill instance')
-    return mod.toolbarHandler(...args)
+    return mod.toolbarHandler(value)
   }
 }
 
