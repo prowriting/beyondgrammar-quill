@@ -27,7 +27,7 @@ build_script:
   
 artifacts:
   - path: dist/beyond-grammar-plugin.js
-  - path: dist/froala.html
+  - path: dist/quill.html
 
 notifications:
 - provider: Slack
