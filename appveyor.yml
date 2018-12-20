@@ -23,11 +23,11 @@ test_script:
 build_script:
   - node --version
   - npm --version
-  - npm run build:CI  
+  - npm run build:ci  
   
 artifacts:
   - path: dist/beyond-grammar-plugin.js
-  - path: dist/froala.html
+  - path: dist/quill.html
 
 notifications:
 - provider: Slack
