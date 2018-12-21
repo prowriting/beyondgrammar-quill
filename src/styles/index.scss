@@ -16,17 +16,22 @@
     }
   }
 
-  .ql-picker-item {
-    &::before {
-      content: "No checking";
-    }
+  .ql-picker-options {
+    overflow: auto;
+    max-height: 300px;
 
-    &[data-value="en-US"]::before {
-      content: "English (United States)";
-    }
+    .ql-picker-item {
+      &::before {
+        content: "No checking";
+      }
 
-    &[data-value="en-GB"]::before {
-      content: "English (United Kindom)";
+      &[data-value="en-US"]::before {
+        content: "English (United States)";
+      }
+
+      &[data-value="en-GB"]::before {
+        content: "English (United Kindom)";
+      }
     }
   }
 }

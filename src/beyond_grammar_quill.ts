@@ -183,6 +183,29 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
 
     return $option
   }
+  const insertStyle = (cssText: string) => {
+    const $style  = document.createElement('style')
+    const $parent = document.head || document.body || document.documentElement
+
+    console.log(cssText)
+    $style.innerHTML = cssText
+    $parent.appendChild($style)
+  }
+  const insertLanguageLabelStyles = (languages: ILanguage[]) => {
+    const text = languages
+      .filter(lang => lang.isEnabled)
+      .map(lang => {
+        return `
+          .ql-beyondgrammar.ql-picker .ql-picker-label[data-bg-value="${lang.isoCode}"]::before,
+          .ql-beyondgrammar.ql-picker .ql-picker-options .ql-picker-item[data-value="${lang.isoCode}"]::before {
+            content: "${lang.displayName.replace(/"/g, '\\"')}";
+          }
+        `
+      })
+      .join('\n')
+
+    insertStyle(text)
+  }
   // Note: No official API to dynamically change select/picker.
   // refer to:
   // * https://codepen.io/DmitrySkripkin/pen/EoLyBJ
@@ -226,6 +249,7 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
   const icons     = quill.import('ui/icons')
 
   rebuildSelectWithLanugages($select, languages)
+  insertLanguageLabelStyles(languages)
 
   // Note: Quill's buildPickers seems to work on next tick, so delay a little bit to process DOM elements
   setTimeout(() => {
