@@ -3,6 +3,7 @@ import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGramm
 import { IServiceSettings } from './interfaces/IServiceSettings'
 import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace } from './common/utils'
 import './styles/index.scss'
+import { ILanguage } from './interfaces/ILanguage';
 
 const settings = {
   service: {
@@ -53,6 +54,8 @@ export class BeyondGrammarModule {
     if (!this.checker)  return
 
     switch (value) {
+      // Note: Quill requires the "disabled" state to have `false` as value in <select>
+      // reference: https://github.com/quilljs/quill/blob/eda1472fb0813455cec38af296a24057b254c29d/modules/toolbar.js#L191
       case false:
         this.checker.deactivate()
         break
@@ -124,7 +127,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       ...settings.service,
       wrapperOptions: {
         apiDecorators: {
-          setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>) => {
+          setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
             const { start, end } = textRangeInAncestor($el, $editor)
 
             // Note: Quill tries to normalize html whenever there is any html change,
@@ -133,6 +136,19 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             setTimeout(() => {
               quillInstance.setSelection(end, 0)
             }, 100)
+          },
+          withSelectionPreserved: (fn: () => any): any => {
+            const { index, length } = quillInstance.getSelection(true)
+
+            try {
+              fn()
+            } catch (e) {
+              console.warn(e)
+            } finally {
+              setTimeout(() => {
+                quillInstance.setSelection(index, length)
+              }, 100)
+            }
           }
         }
       }
@@ -142,8 +158,87 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
 
     return checker.init()
     .then(() => checker.activate())
+    .then(() => rebuildLanguagePicker(quillInstance, checker))
+    .catch(e => console.warn(e))
     .then(() => checker)
   })
+}
+
+export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarChecker) {
+  // Note: There seems to be no official API to get toolbar from quill instance
+  const getToolbarContainer = (quillInstance: Quill): HTMLElement => {
+    const $container = quillInstance.root.parentElement as HTMLElement
+    const $toolbar   = $container.previousElementSibling as HTMLElement
+
+    return $toolbar
+  }
+  const getLanguageSelect = ($toolbar: HTMLElement): HTMLSelectElement => {
+    return $toolbar.querySelector('select.ql-beyondgrammar') as HTMLSelectElement
+  }
+  const createOption = (value: string, label: string) => {
+    const $option = document.createElement('option')
+
+    $option.setAttribute('value', value)
+    $option.innerText = label
+
+    return $option
+  }
+  // Note: No official API to dynamically change select/picker.
+  // refer to:
+  // * https://codepen.io/DmitrySkripkin/pen/EoLyBJ
+  // * https://github.com/quilljs/quill/blob/develop/themes/base.js
+  // * https://github.com/quilljs/quill/blob/develop/ui/picker.js
+  const rebuildSelectWithLanugages = ($select: HTMLSelectElement, languages: ILanguage[]) => {
+    const oldOptionsCount = $select.childNodes.length
+    const $default = document.createElement('option')
+    $default.setAttribute('selected', 'selected')
+    $select.appendChild($default)
+
+    languages
+    .filter(lang => lang.isEnabled)
+    .forEach(lang => {
+      $select.appendChild(
+        createOption(lang.isoCode, lang.displayName)
+      )
+    })
+
+    Array.from($select.childNodes)
+    .slice(0, oldOptionsCount)
+    .forEach(node => node.remove())
+
+    // TODO: insert <style>
+    return $select
+  }
+  const removeOldPickerElement = ($toolbar: HTMLElement) => {
+    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker')
+    $picker && $picker.remove()
+  }
+  const showNewPickerElement = ($toolbar: HTMLElement) => {
+    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker')
+    if (!$picker)  return
+    $picker.removeAttribute('style')
+  }
+
+  const $toolbar  = getToolbarContainer(quillInstance)
+  const $select   = getLanguageSelect($toolbar)
+  const languages = checker.getAvailableLanguages()
+  const quill     = getQuill()
+  const icons     = quill.import('ui/icons')
+
+  rebuildSelectWithLanugages($select, languages)
+
+  // Note: Quill's buildPickers seems to work on next tick, so delay a little bit to process DOM elements
+  setTimeout(() => {
+    removeOldPickerElement($toolbar)
+    showNewPickerElement($toolbar)
+  }, 50)
+
+  ;((<any>quillInstance).theme as any).buildPickers(
+    Array.from(
+      $toolbar.querySelectorAll('select')
+    ),
+    icons
+  )
 }
 
 export function registerBlots (): void {
