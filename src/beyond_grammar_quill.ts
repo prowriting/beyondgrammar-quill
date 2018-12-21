@@ -8,7 +8,9 @@ import { ILanguage } from './interfaces/ILanguage';
 const settings = {
   service: {
     apiKey:       "E8FEF7AE-3F36-4EAF-A451-456D05E6F2A3",
-    sourcePath:   '//cdn.prowritingaid.com/beyondgrammar/release/dist/hayt/bundle.js',
+    // sourcePath:   '//cdn.prowritingaid.com/beyondgrammar/release/dist/hayt/bundle.js',
+    sourcePath:   '//cdn.prowritingaid.com/beyondgrammar/2.0.1843/dist/hayt/bundle.js',
+    // sourcePath:   'http://localhost:8080/bundle.js?r=' + Math.random(),
     serviceUrl:   '//rtg.prowritingaid.com'
   },
   grammar: {
@@ -187,7 +189,6 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
     const $style  = document.createElement('style')
     const $parent = document.head || document.body || document.documentElement
 
-    console.log(cssText)
     $style.innerHTML = cssText
     $parent.appendChild($style)
   }
