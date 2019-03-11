@@ -149,7 +149,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             } finally {
               setTimeout(() => {
                 quillInstance.setSelection(index, length)
-              }, 100)
+              }, 0)
             }
           }
         }
