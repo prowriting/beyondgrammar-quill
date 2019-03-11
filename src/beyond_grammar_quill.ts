@@ -147,7 +147,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             } finally {
               setTimeout(() => {
                 quillInstance.setSelection(index, length)
-              }, 100)
+              }, 0)
             }
           }
         }
@@ -187,7 +187,6 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
     const $style  = document.createElement('style')
     const $parent = document.head || document.body || document.documentElement
 
-    console.log(cssText)
     $style.innerHTML = cssText
     $parent.appendChild($style)
   }
