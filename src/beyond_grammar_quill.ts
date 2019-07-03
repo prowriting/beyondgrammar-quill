@@ -1,9 +1,9 @@
 import Quill from 'quill'
-import { IGrammarChecker, IGrammarCheckerConstructor } from './interfaces/IGrammarChecker'
-import { IServiceSettings } from './interfaces/IServiceSettings'
-import { textRangeInAncestor, loadScriptIfNeeded, exportToNamespace } from './common/utils'
+import {IGrammarChecker, IGrammarCheckerConstructor} from './interfaces/IGrammarChecker'
+import {IServiceSettings} from './interfaces/IServiceSettings'
+import {exportToNamespace, loadScriptIfNeeded, textRangeInAncestor} from './common/utils'
 import './styles/index.scss'
-import { ILanguage } from './interfaces/ILanguage';
+import {ILanguage} from './interfaces/ILanguage';
 
 const settings = {
   service: {
@@ -19,58 +19,58 @@ const settings = {
     checkGrammar:     true,
     checkerIsEnabled: true
   }
-}
+};
 
-const cache = [] as Array<{quill: Quill, mod: BeyondGrammarModule, id: string}>
+const cache = [] as Array<{quill: Quill, mod: BeyondGrammarModule, id: string}>;
 
 function saveQuillAndMod (quill: Quill, mod: BeyondGrammarModule) {
-  const id = '' + Math.random()
+  const id = '' + Math.random();
   cache.push({ id, quill, mod })
 }
 
 function findModByQuill (quill: Quill) {
-  const item = cache.find(item => item.quill === quill)
+  const item = cache.find(item => item.quill === quill);
   return item ? item.mod : null
 }
 
 export type QuillBeyondGrammarOptions = {}
 
 export class BeyondGrammarModule {
-  private checker: IGrammarChecker | null = null
+  private checker: IGrammarChecker | null = null;
 
   constructor (private quill: Quill, options: QuillBeyondGrammarOptions) {
-    this.quill.getModule('toolbar').addHandler('beyondgrammar', this.toolbarHandler)
+    this.quill.getModule('toolbar').addHandler('beyondgrammar', this.toolbarHandler);
 
-    saveQuillAndMod(quill, this)
+    saveQuillAndMod(quill, this);
 
     initBeyondGrammarForQuillInstance(quill)
     .then(checker => {
-      this.checker = checker
+      this.checker = checker;
       this.updateSelect('en-US')
     })
   }
 
   toolbarHandler = (value: string | boolean) => {
-    if (!this.checker)  return
+    if (!this.checker)  return;
 
     switch (value) {
       // Note: Quill requires the "disabled" state to have `false` as value in <select>
       // reference: https://github.com/quilljs/quill/blob/eda1472fb0813455cec38af296a24057b254c29d/modules/toolbar.js#L191
       case false:
-        this.checker.deactivate()
-        break
+        this.checker.deactivate();
+        break;
 
       default:
         this.checker.setSettings({
           ...this.checker.getSettings,
           languageIsoCode: value as string
-        })
-        this.checker.activate()
+        });
+        this.checker.activate();
         break
     }
 
     this.updateSelect(value)
-  }
+  };
 
   updateSelect = (value: string | boolean) => {
     // Note: Quill renders `[{ beyondgrammar: ['en-US', 'en-GB', false] }]` (in `config.modules`)
@@ -79,9 +79,9 @@ export class BeyondGrammarModule {
     // What we need to tell css is the `data-bg-value` as the current selected value
     const [_, $select]: [string, HTMLElement] = this.quill.getModule('toolbar').controls.find((item: any) => {
       return item[0] === 'beyondgrammar'
-    })
-    const $picker = $select.previousElementSibling as Element
-    const $label  = $picker.querySelector('.ql-picker-label') as Element
+    });
+    const $picker = $select.previousElementSibling as Element;
+    const $label  = $picker.querySelector('.ql-picker-label') as Element;
 
     $label.setAttribute('data-bg-value', '' + value)
   }
@@ -89,25 +89,25 @@ export class BeyondGrammarModule {
 
 export function getToolbarHandler (quill: Quill) {
   return (value: string | boolean) => {
-    const mod: BeyondGrammarModule | null = findModByQuill(quill)
-    if (!mod) throw new Error('BeyondGrammarModule not found for this Quill instance')
+    const mod: BeyondGrammarModule | null = findModByQuill(quill);
+    if (!mod) throw new Error('BeyondGrammarModule not found for this Quill instance');
     return mod.toolbarHandler(value)
   }
 }
 
 export function getQuill () {
-  const quill: Quill = (window as any)['Quill'] as any
-  if (!quill) throw new Error('window.quill is empty')
+  const quill: Quill = (window as any)['Quill'] as any;
+  if (!quill) throw new Error('window.quill is empty');
   return quill as any
 }
 
 export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor> {
   return loadScriptIfNeeded(settings.service.sourcePath)
   .then(() => {
-    const apiRoot = (window as any)['BeyondGrammar']
+    const apiRoot = (window as any)['BeyondGrammar'];
 
     if (!apiRoot || !apiRoot['GrammarChecker']) {
-      throw new Error('API is not setup at window["BeyondGrammar"]')
+      throw new Error('API is not setup at window["BeyondGrammar"]');
     }
 
     return (window as any)['BeyondGrammar']['GrammarChecker'] as IGrammarCheckerConstructor
@@ -115,20 +115,20 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
 }
 
 export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promise<IGrammarChecker> {
-  const $editor = quillInstance.root
+  const $editor = quillInstance.root;
 
   return ensureLoadGrammarChecker()
   .then(GrammarChecker => {
     // Note: hayt bundle is likely to overwrite `widnow.BeyondGrammar`,
     // so re-export API after hayt script is loaded
-    makeExports()
+    makeExports();
 
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
       wrapperOptions: {
         apiDecorators: {
           setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
-            const { start, end } = textRangeInAncestor($el, $editor)
+            const { start, end } = textRangeInAncestor($el, $editor);
 
             // Note: Quill tries to normalize html whenever there is any html change,
             // This makes the PWA internal setCursor not working any more
@@ -138,7 +138,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             }, 100)
           },
           withSelectionPreserved: (fn: () => any): any => {
-            const { index, length } = quillInstance.getSelection(true)
+            const { index, length } = quillInstance.getSelection(true);
 
             try {
               fn()
@@ -152,7 +152,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
           }
         }
       }
-    })
+    });
 
     checker.setSettings(settings.grammar);
 
@@ -167,29 +167,31 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
 export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarChecker) {
   // Note: There seems to be no official API to get toolbar from quill instance
   const getToolbarContainer = (quillInstance: Quill): HTMLElement => {
-    const $container = quillInstance.root.parentElement as HTMLElement
-    const $toolbar   = $container.previousElementSibling as HTMLElement
+    const $container = quillInstance.root.parentElement as HTMLElement;
+    return $container.previousElementSibling as HTMLElement;
+  };
 
-    return $toolbar
-  }
   const getLanguageSelect = ($toolbar: HTMLElement): HTMLSelectElement => {
-    return $toolbar.querySelector('select.ql-beyondgrammar') as HTMLSelectElement
-  }
+    return $toolbar.querySelector('select.ql-beyondgrammar') as HTMLSelectElement;
+  };
+
   const createOption = (value: string, label: string) => {
-    const $option = document.createElement('option')
+    const $option = document.createElement('option');
 
-    $option.setAttribute('value', value)
-    $option.innerText = label
+    $option.setAttribute('value', value);
+    $option.innerText = label;
 
-    return $option
-  }
+    return $option;
+  };
+
   const insertStyle = (cssText: string) => {
-    const $style  = document.createElement('style')
-    const $parent = document.head || document.body || document.documentElement
+    const $style  = document.createElement('style');
+    const $parent = document.head || document.body || document.documentElement;
 
-    $style.innerHTML = cssText
-    $parent.appendChild($style)
-  }
+    $style.innerHTML = cssText;
+    $parent.appendChild($style);
+  };
+
   const insertLanguageLabelStyles = (languages: ILanguage[]) => {
     const text = languages
       .filter(lang => lang.isEnabled)
@@ -201,20 +203,21 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
           }
         `
       })
-      .join('\n')
+      .join('\n');
 
-    insertStyle(text)
-  }
+    insertStyle(text);
+  };
+
   // Note: No official API to dynamically change select/picker.
   // refer to:
   // * https://codepen.io/DmitrySkripkin/pen/EoLyBJ
   // * https://github.com/quilljs/quill/blob/develop/themes/base.js
   // * https://github.com/quilljs/quill/blob/develop/ui/picker.js
   const rebuildSelectWithLanugages = ($select: HTMLSelectElement, languages: ILanguage[]) => {
-    const oldOptionsCount = $select.childNodes.length
-    const $default = document.createElement('option')
-    $default.setAttribute('selected', 'selected')
-    $select.appendChild($default)
+    const oldOptionsCount = $select.childNodes.length;
+    const $default = document.createElement('option');
+    $default.setAttribute('selected', 'selected');
+    $select.appendChild($default);
 
     languages
     .filter(lang => lang.isEnabled)
@@ -222,38 +225,40 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
       $select.appendChild(
         createOption(lang.isoCode, lang.displayName)
       )
-    })
+    });
 
     Array.from($select.childNodes)
     .slice(0, oldOptionsCount)
-    .forEach(node => node.remove())
+    .forEach(node => node.remove());
 
     // TODO: insert <style>
     return $select
-  }
+  };
+
   const removeOldPickerElement = ($toolbar: HTMLElement) => {
-    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker')
-    $picker && $picker.remove()
-  }
+    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker');
+    $picker && $picker.remove();
+  };
+
   const showNewPickerElement = ($toolbar: HTMLElement) => {
-    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker')
-    if (!$picker)  return
+    const $picker = $toolbar.querySelector('.ql-beyondgrammar.ql-picker');
+    if (!$picker)  return;
     $picker.removeAttribute('style')
-  }
+  };
 
-  const $toolbar  = getToolbarContainer(quillInstance)
-  const $select   = getLanguageSelect($toolbar)
-  const languages = checker.getAvailableLanguages()
-  const quill     = getQuill()
-  const icons     = quill.import('ui/icons')
+  const $toolbar  = getToolbarContainer(quillInstance);
+  const $select   = getLanguageSelect($toolbar);
+  const languages = checker.getAvailableLanguages();
+  const quill     = getQuill();
+  const icons     = quill.import('ui/icons');
 
-  rebuildSelectWithLanugages($select, languages)
-  insertLanguageLabelStyles(languages)
+  rebuildSelectWithLanugages($select, languages);
+  insertLanguageLabelStyles(languages);
 
   // Note: Quill's buildPickers seems to work on next tick, so delay a little bit to process DOM elements
   setTimeout(() => {
-    removeOldPickerElement($toolbar)
-    showNewPickerElement($toolbar)
+    removeOldPickerElement($toolbar);
+    showNewPickerElement($toolbar);
   }, 50)
 
   ;((<any>quillInstance).theme as any).buildPickers(
@@ -265,31 +270,31 @@ export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarCh
 }
 
 export function registerBlots (): void {
-  const quill   = getQuill()
-  const Inline  = quill.import('blots/inline')
+  const quill   = getQuill();
+  const Inline  = quill.import('blots/inline');
 
   const initPWABlots = () => {
     class PWAInline extends Inline {}
 
-    PWAInline.tagName   = 'pwa'
-    PWAInline.blotName  = 'pwa-inline'
-    PWAInline.className = 'pwa-mark'
+    PWAInline.tagName   = 'pwa';
+    PWAInline.blotName  = 'pwa-inline';
+    PWAInline.className = 'pwa-mark';
 
     quill.register(PWAInline)
-  }
+  };
 
   const initRangyBlots = () => {
     class RangySelectionBoundaryInline extends Inline {}
 
-    RangySelectionBoundaryInline.tagName   = 'span'
-    RangySelectionBoundaryInline.blotName  = 'rangy-selection-boundary-inline'
-    RangySelectionBoundaryInline.className = 'rangySelectionBoundary'
+    RangySelectionBoundaryInline.tagName   = 'span';
+    RangySelectionBoundaryInline.blotName  = 'rangy-selection-boundary-inline';
+    RangySelectionBoundaryInline.className = 'rangySelectionBoundary';
 
     quill.register(RangySelectionBoundaryInline)
-  }
+  };
 
-  initPWABlots()
-  initRangyBlots()
+  initPWABlots();
+  initRangyBlots();
 }
 
 export function registerModule () {
@@ -297,19 +302,19 @@ export function registerModule () {
 }
 
 export function initBeyondGrammar () {
-  registerBlots()
-  registerModule()
+  registerBlots();
+  registerModule();
 }
 
 export function getCleanInnerHTML ($editor: HTMLElement): string {
-  const $cloned   = $editor.cloneNode(true) as HTMLElement
-  const $pwaList  = $cloned.querySelectorAll('pwa')
+  const $cloned   = $editor.cloneNode(true) as HTMLElement;
+  const $pwaList  = $cloned.querySelectorAll('pwa');
 
   Array.from($pwaList).forEach($pwa => {
     $pwa.replaceWith(
       document.createTextNode($pwa.textContent as string)
     )
-  })
+  });
 
   return $cloned.innerHTML
 }
@@ -322,4 +327,4 @@ export function makeExports () {
   })
 }
 
-makeExports()
+makeExports();
