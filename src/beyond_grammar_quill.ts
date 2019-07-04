@@ -137,7 +137,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
               quillInstance.setSelection(end, 0)
             }, 100)
           },
-          withSelectionPreserved: (fn: () => any): any => {
+          withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
             const { index, length } = quillInstance.getSelection(true);
 
             try {
