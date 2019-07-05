@@ -22,6 +22,6 @@
   },
   "dependencies": {
     "@types/jquery": "^3.3.30",
-    "@types/quill": "^2.0.1"
+    "@types/quill": "2.0.1"
   }
 }
