@@ -124,6 +124,9 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
     makeExports();
 
     let passedOptions = (<any>quillInstance).options.modules.beyondgrammar;
+    if( !passedOptions ){
+      passedOptions = {};
+    }
 
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
