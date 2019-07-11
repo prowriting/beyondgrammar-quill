@@ -123,8 +123,11 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
     // so re-export API after hayt script is loaded
     makeExports();
 
+    let passedOptions = (<any>quillInstance).options.modules.beyondgrammar;
+
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
+      ...passedOptions.service,
       wrapperOptions: {
         apiDecorators: {
           setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
@@ -154,7 +157,10 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       }
     });
 
-    checker.setSettings(settings.grammar);
+    checker.setSettings({
+      ...settings.grammar,
+      ...passedOptions.grammar
+    });
 
     return checker.init()
     .then(() => checker.activate())
