@@ -128,6 +128,8 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       passedOptions = {};
     }
 
+    let setSelectionTimeout = -1;
+
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
       ...passedOptions.service,
@@ -139,21 +141,27 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             // Note: Quill tries to normalize html whenever there is any html change,
             // This makes the PWA internal setCursor not working any more
             // So have to use the Quill:setSelection API, and add some delay here
-            setTimeout(() => {
+
+            clearTimeout(setSelectionTimeout);
+
+            setSelectionTimeout = setTimeout(() => {
               quillInstance.setSelection(end, 0)
             }, 100)
           },
           withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
             const { index, length } = quillInstance.getSelection(true);
-
+            clearTimeout(setSelectionTimeout);
             try {
               fn()
             } catch (e) {
               console.warn(e)
             } finally {
-              setTimeout(() => {
-                quillInstance.setSelection(index, length)
-              }, 0)
+              if( saveSelection ) {
+                setSelectionTimeout =
+                  setTimeout(() => {
+                  quillInstance.setSelection(index, length)
+                }, 0)
+              }
             }
           }
         }
