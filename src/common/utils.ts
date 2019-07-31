@@ -187,7 +187,7 @@ export function setGlobalCursorPosition( target: HTMLElement,  pos :number ) : v
 
   let doc = <Document>target.ownerDocument;
   let win = <Window>doc.defaultView;
-  let selection = win.getSelection();
+  let selection = <Selection>win.getSelection();
 
   let cursorPositionAfterAction = getRangeByGlobalPosition(target, pos );
   selection.removeAllRanges();
