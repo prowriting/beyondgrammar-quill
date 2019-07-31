@@ -1,7 +1,11 @@
 import Quill from 'quill'
 import {IGrammarChecker, IGrammarCheckerConstructor} from './interfaces/IGrammarChecker'
 import {IServiceSettings} from './interfaces/IServiceSettings'
-import {exportToNamespace, loadScriptIfNeeded, textRangeInAncestor} from './common/utils'
+import {
+  exportToNamespace, getGlobalRangePosition,
+  loadScriptIfNeeded, setGlobalCursorPosition,
+  textRangeInAncestor
+} from './common/utils'
 import './styles/index.scss'
 import {ILanguage} from './interfaces/ILanguage';
 
@@ -128,42 +132,53 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       passedOptions = {};
     }
 
-    let setSelectionTimeout = -1;
-
     const checker: IGrammarChecker = new GrammarChecker($editor, <IServiceSettings> {
       ...settings.service,
       ...passedOptions.service,
       wrapperOptions: {
         apiDecorators: {
           setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
-            const { start, end } = textRangeInAncestor($el, $editor);
+            let doc = <Document>$el.ownerDocument;
+            let range = doc.createRange();
+            range.selectNode($el);
+            range.collapse(false);
 
-            // Note: Quill tries to normalize html whenever there is any html change,
-            // This makes the PWA internal setCursor not working any more
-            // So have to use the Quill:setSelection API, and add some delay here
-
-            clearTimeout(setSelectionTimeout);
-
-            setSelectionTimeout = setTimeout(() => {
-              quillInstance.setSelection(end, 0)
-            }, 100)
+            let cur = getGlobalRangePosition(quillInstance.root, range);
+            setGlobalCursorPosition(quillInstance.root, cur);
           },
-          withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
-            const { index, length } = quillInstance.getSelection(true);
+          /*withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
+
+            /!*let cursor = saveSelection ? getGlobalCursorPosition(quillInstance.root) : -1;
             clearTimeout(setSelectionTimeout);
             try {
               fn()
             } catch (e) {
               console.warn(e)
             } finally {
-              if( saveSelection ) {
+              if( cursor > -1 ){
+                // quillInstance.setSelection(cursor, 0, 'silent');
+
                 setSelectionTimeout =
                   setTimeout(() => {
-                  quillInstance.setSelection(index, length)
-                }, 0)
+                    setGlobalCursorPosition(quillInstance.root, cursor);
+
+                  }, 0)
+              }
+            }*!/
+
+            const range = quillInstance.getSelection(false);
+
+            try {
+              fn()
+            } catch (e) {
+              console.warn(e)
+            } finally {
+              if( saveSelection && range ) {
+                quillInstance.update();
+                quillInstance.setSelection(range.index, range.length, "silent")
               }
             }
-          }
+          }*/
         }
       }
     });
