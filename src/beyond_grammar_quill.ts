@@ -147,35 +147,18 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             setGlobalCursorPosition(quillInstance.root, cur);
           },
           /*withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
-
-            /!*let cursor = saveSelection ? getGlobalCursorPosition(quillInstance.root) : -1;
+            const { index, length } = quillInstance.getSelection(true);
             clearTimeout(setSelectionTimeout);
             try {
               fn()
             } catch (e) {
               console.warn(e)
             } finally {
-              if( cursor > -1 ){
-                // quillInstance.setSelection(cursor, 0, 'silent');
-
+              if( saveSelection ) {
                 setSelectionTimeout =
                   setTimeout(() => {
-                    setGlobalCursorPosition(quillInstance.root, cursor);
-
-                  }, 0)
-              }
-            }*!/
-
-            const range = quillInstance.getSelection(false);
-
-            try {
-              fn()
-            } catch (e) {
-              console.warn(e)
-            } finally {
-              if( saveSelection && range ) {
-                quillInstance.update();
-                quillInstance.setSelection(range.index, range.length, "silent")
+                  quillInstance.setSelection(index, length)
+                }, 0)
               }
             }
           }*/
