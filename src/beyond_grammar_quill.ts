@@ -1,7 +1,11 @@
 import Quill from 'quill'
 import {IGrammarChecker, IGrammarCheckerConstructor} from './interfaces/IGrammarChecker'
 import {IServiceSettings} from './interfaces/IServiceSettings'
-import {exportToNamespace, loadScriptIfNeeded, textRangeInAncestor} from './common/utils'
+import {
+  exportToNamespace, getGlobalRangePosition,
+  loadScriptIfNeeded, setGlobalCursorPosition,
+  textRangeInAncestor
+} from './common/utils'
 import './styles/index.scss'
 import {ILanguage} from './interfaces/ILanguage';
 
@@ -134,27 +138,13 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       wrapperOptions: {
         apiDecorators: {
           setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
-            const { start, end } = textRangeInAncestor($el, $editor);
+            let doc = <Document>$el.ownerDocument;
+            let range = doc.createRange();
+            range.selectNode($el);
+            range.collapse(false);
 
-            // Note: Quill tries to normalize html whenever there is any html change,
-            // This makes the PWA internal setCursor not working any more
-            // So have to use the Quill:setSelection API, and add some delay here
-            setTimeout(() => {
-              quillInstance.setSelection(end, 0)
-            }, 100)
-          },
-          withSelectionPreserved: (win: Window, saveSelection: boolean, fn: () => any): any => {
-            const { index, length } = quillInstance.getSelection(true);
-
-            try {
-              fn()
-            } catch (e) {
-              console.warn(e)
-            } finally {
-              setTimeout(() => {
-                quillInstance.setSelection(index, length)
-              }, 0)
-            }
+            let cur = getGlobalRangePosition(quillInstance.root, range);
+            setGlobalCursorPosition(quillInstance.root, cur);
           }
         }
       }
