@@ -144,6 +144,7 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             range.collapse(false);
 
             let cur = getGlobalRangePosition(quillInstance.root, range);
+            quillInstance.update();
             setGlobalCursorPosition(quillInstance.root, cur);
           }
         }
