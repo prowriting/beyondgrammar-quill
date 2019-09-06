@@ -145,6 +145,9 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             quillInstance.update();
             setGlobalCursorPosition(quillInstance.root, cur);
           }
+        },
+        additionalAttributes: {
+          'pwa-beyondgrammar': ''
         }
       }
     });
