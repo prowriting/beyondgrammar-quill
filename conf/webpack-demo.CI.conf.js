@@ -4,7 +4,7 @@ var CopyWebpackPlugin = require('copy-webpack-plugin');
 const ROOT = path.resolve('.');
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   stats: {
     colors: true,
     reasons: true

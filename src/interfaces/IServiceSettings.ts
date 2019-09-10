@@ -21,7 +21,8 @@ export type WrapperBehavior = {
 export type WrapperBehaviorTiming = '*' | UnbindEditableReason
 
 export interface WrapperOptions {
-  additionalStyles?:           any;
+  additionalAttributes:       Record<string, any>;
+  additionalStyles?:          any;
   apiDecorators?:             WrapperAPIDecorators;
   highlighterOptions?:        HighlighterOptions;
   importContent?:             ImportContentOptions;

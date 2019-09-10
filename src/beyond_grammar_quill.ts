@@ -120,9 +120,7 @@ export function ensureLoadGrammarChecker (): Promise<IGrammarCheckerConstructor>
 
 export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promise<IGrammarChecker> {
   const $editor = quillInstance.root;
-
-  return ensureLoadGrammarChecker()
-  .then(GrammarChecker => {
+  const init = (GrammarChecker: IGrammarCheckerConstructor) => {
     // Note: hayt bundle is likely to overwrite `widnow.BeyondGrammar`,
     // so re-export API after hayt script is loaded
     makeExports();
@@ -147,6 +145,9 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
             quillInstance.update();
             setGlobalCursorPosition(quillInstance.root, cur);
           }
+        },
+        additionalAttributes: {
+          'pwa-beyondgrammar': ''
         }
       }
     });
@@ -161,7 +162,18 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
     .then(() => rebuildLanguagePicker(quillInstance, checker))
     .catch(e => console.warn(e))
     .then(() => checker)
-  })
+  };
+
+  const win = window as any;
+  const GrammarChecker = win['BeyondGrammar'] && win['BeyondGrammar']['GrammarChecker'];
+
+  if (GrammarChecker) {
+    return init(GrammarChecker)
+  } else {
+    return ensureLoadGrammarChecker()
+    .then(GrammarChecker => init(GrammarChecker))
+  }
+
 }
 
 export function rebuildLanguagePicker (quillInstance: Quill, checker: IGrammarChecker) {
@@ -301,9 +313,17 @@ export function registerModule () {
   getQuill().register('modules/beyondgrammar', BeyondGrammarModule)
 }
 
-export function initBeyondGrammar () {
+export function initBeyondGrammar (fn: () => void) {
   registerBlots();
   registerModule();
+
+  ensureLoadGrammarChecker()
+  .then(() => {
+    return fn()
+  })
+  .catch((e: Error) => {
+    console.error(e)
+  })
 }
 
 export function getCleanInnerHTML ($editor: HTMLElement): string {
