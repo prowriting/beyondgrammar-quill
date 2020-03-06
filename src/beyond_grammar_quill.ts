@@ -319,6 +319,7 @@ export function initBeyondGrammar (fn: () => void) {
 
   ensureLoadGrammarChecker()
   .then(() => {
+    makeExports(); // To be sure we have not re-written namespace after loading the grammar checker sources
     return fn()
   })
   .catch((e: Error) => {
