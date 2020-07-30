@@ -21,7 +21,8 @@ const settings = {
     checkStyle:       true,
     checkSpelling:    true,
     checkGrammar:     true,
-    checkerIsEnabled: true
+    checkerIsEnabled: true,
+    heavyGrammar:     true
   }
 };
 
