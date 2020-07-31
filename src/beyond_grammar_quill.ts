@@ -155,7 +155,8 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
 
     checker.setSettings({
       ...settings.grammar,
-      ...passedOptions.grammar
+      ...passedOptions.grammar,
+      heavyGrammar : true
     });
 
     return checker.init()
