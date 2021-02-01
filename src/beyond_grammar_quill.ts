@@ -136,6 +136,16 @@ export function initBeyondGrammarForQuillInstance (quillInstance: Quill): Promis
       ...passedOptions.service,
       wrapperOptions: {
         apiDecorators: {
+          withSelectionPreserved : (win , saveSelection, fn : any)=>{
+            let selection = quillInstance.getSelection(false);
+            if( selection  && saveSelection ) {
+              let res = fn();
+              quillInstance.update('silent');
+              quillInstance.setSelection(selection.index, selection.length, "silent");
+              return res;
+            }
+            return fn();
+          },
           setCursorAtEndOfElement: ($el: Element, api: Record<string, Function>): any => {
             let doc = <Document>$el.ownerDocument;
             let range = doc.createRange();
