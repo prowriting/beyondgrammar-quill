@@ -1,7 +1,7 @@
 # BeyondGrammar plugin for Quill editor
 Bring real-time spelling, grammar and style checking into your Quill editor. Perfect for CMSs, help desk systems and blogs.
 
-To add real-time grammar, spell and style checking to your Quill editor you just need to install this add-in. It's free for individuals and reasonably proced for multi-user licenses.
+To add real-time grammar, spell and style checking to your Quill editor you just need to install this add-in. It's free for individuals and reasonably priced for multi-user licenses.
 
 ## Why choose our plugin?
 Our state-of-the-art grammar checker is used by over 500,000 users. It contains many unique features that you won't find in other solutions. These include:
